@@ -22,7 +22,8 @@ options.add_argument("--disable-dev-shm-usage")
 driver = webdriver.Chrome(options=options)
 
 try:
-    url = "https://www.betman.co.kr/main/mainPage/customercenter/notice.do?notiCd=4&searchVal=%EC%B6%95%EA%B5%AC&iPage=1"
+    # 알림(2) + 토토(4) 카테고리 모두 조회
+    url = "https://www.betman.co.kr/main/mainPage/customercenter/notice.do?notiCd=2,4&searchVal=%EC%B6%95%EA%B5%AC&iPage=1"
     driver.get(url)
     time.sleep(3)
 
@@ -43,8 +44,13 @@ try:
 
         print(f"[{idx}] 구분: '{category}', 제목: '{title}', 날짜: '{date}'")
 
+        # 축구 관련 공지인지 확인
         is_soccer_notice = ("축구" in title or "승무패" in title)
+
+        # 이월 공지인지 확인
         is_rollover_notice = ("이월" in title or "이월금" in title)
+
+        # 날짜가 오늘인지 확인
         is_target_date = (date == target_date)
 
         if is_soccer_notice and is_rollover_notice and is_target_date:
@@ -54,18 +60,27 @@ try:
             break
 
     if found:
+        # GitHub 이슈 생성
         github_repo = os.getenv("GITHUB_REPOSITORY")
         github_token = os.getenv("GITHUB_TOKEN")
 
         if github_repo and github_token:
             api_url = f"https://api.github.com/repos/{github_repo}/issues"
+
             headers = {
                 "Authorization": f"Bearer {github_token}",
                 "Accept": "application/vnd.github+json"
             }
 
+            # 멘션 텍스트 생성
             mention_text = " ".join([f"@{user}" for user in github_mentions])
-            body_text = f"{mention_text}\n\n{issue_title}\n\n발견 날짜: {target_date}"
+
+            body_text = f"""{mention_text}
+
+{issue_title}
+
+발견 날짜: {target_date}
+"""
 
             payload = {
                 "title": issue_title,

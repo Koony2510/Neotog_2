@@ -7,7 +7,7 @@ import os
 import time
 
 # 오늘 날짜를 'YYYY.MM.DD' 형식으로 자동 설정
-target_date = "2026.02.20"
+target_date = datetime.today().strftime('%Y.%m.%d')
 
 # GitHub 사용자 지정
 github_assignees = ["Koony2510"]
